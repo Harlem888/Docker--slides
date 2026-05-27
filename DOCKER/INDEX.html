@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dominando o Docker 🐳</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --cyan: #00d4ff;
+    --cyan2: #00a8cc;
+    --green: #00ff9d;
+    --yellow: #ffd600;
+    --red: #ff4d6d;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --font-display: 'Syne', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-display);
+    overflow-x: hidden;
+  }
+
+  /* ── PARTICLES BG ── */
+  #particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; gap: 2rem;
+    padding: 1rem 2rem;
+    background: rgba(10,14,26,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { font-size: 1.1rem; font-weight: 800; color: var(--cyan); letter-spacing: -0.02em; }
+  .nav-logo span { color: var(--text); }
+  .nav-links { display: flex; gap: 1.5rem; margin-left: auto; }
+  .nav-links a {
+    color: var(--muted); font-size: 0.85rem; text-decoration: none;
+    transition: color 0.2s; letter-spacing: 0.05em; text-transform: uppercase;
+  }
+  .nav-links a:hover { color: var(--cyan); }
+  .progress-bar {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: linear-gradient(90deg, var(--cyan), var(--green));
+    z-index: 200; transition: width 0.3s;
+    box-shadow: 0 0 10px var(--cyan);
+  }
+
+  /* ── SECTIONS ── */
+  section { position: relative; z-index: 1; }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    text-align: center; padding: 6rem 2rem 4rem;
+  }
+  .whale { font-size: 5rem; animation: float 3s ease-in-out infinite; display: block; margin-bottom: 1.5rem; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px)} }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 100px; padding: 0.4rem 1rem; font-size: 0.8rem;
+    color: var(--cyan); letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+  .hero-badge::before { content: '●'; color: var(--green); animation: blink 1.5s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  h1 {
+    font-size: clamp(2.8rem, 8vw, 5.5rem);
+    font-weight: 800; line-height: 1;
+    letter-spacing: -0.03em; margin-bottom: 1.5rem;
+  }
+  h1 .accent { color: var(--cyan); }
+  .hero-sub {
+    font-size: 1.1rem; color: var(--muted); max-width: 520px;
+    line-height: 1.7; margin-bottom: 3rem;
+  }
+  .btn-group { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+  .btn {
+    padding: 0.85rem 2rem; border-radius: 8px; font-size: 0.95rem;
+    font-weight: 700; font-family: var(--font-display); cursor: pointer;
+    transition: all 0.2s; text-decoration: none; display: inline-block; border: none;
+  }
+  .btn-primary {
+    background: var(--cyan); color: #000;
+    box-shadow: 0 0 20px rgba(0,212,255,0.4);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0,212,255,0.6); }
+  .btn-outline {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-outline:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  .scroll-hint {
+    position: absolute; bottom: 2rem;
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    color: var(--muted); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;
+    animation: pulse 2s infinite;
+  }
+  .scroll-hint::after {
+    content: ''; width: 1px; height: 40px;
+    background: linear-gradient(var(--cyan), transparent);
+    animation: scrollLine 2s infinite;
+  }
+  @keyframes scrollLine { 0%{transform:scaleY(0);transform-origin:top} 50%{transform:scaleY(1)} 100%{transform:scaleY(0);transform-origin:bottom} }
+  @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+  /* ── SECTIONS COMMON ── */
+  .section-wrapper { max-width: 1100px; margin: 0 auto; padding: 6rem 2rem; }
+  .section-tag {
+    display: inline-block;
+    font-size: 0.75rem; font-family: var(--font-mono);
+    color: var(--cyan); letter-spacing: 0.15em; text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .section-tag::before { content: '// '; opacity: 0.5; }
+  h2 {
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem;
+    line-height: 1.1;
+  }
+  .section-desc { color: var(--muted); font-size: 1rem; line-height: 1.7; max-width: 600px; margin-bottom: 3rem; }
+
+  /* ── CONCEPT CARDS ── */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 2rem;
+    transition: all 0.3s; cursor: default;
+    position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(0,212,255,0.06), transparent 70%);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .card:hover { border-color: var(--cyan); transform: translateY(-4px); }
+  .card:hover::before { opacity: 1; }
+  .card-icon { font-size: 2.5rem; margin-bottom: 1rem; display: block; }
+  .card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text); }
+  .card-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+
+  /* ── VM vs CONTAINERS ── */
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  @media(max-width:600px){ .compare-grid { grid-template-columns: 1fr; } }
+  .compare-card {
+    background: var(--surface); border: 2px solid var(--border);
+    border-radius: 16px; padding: 2rem; transition: all 0.3s;
+  }
+  .compare-card.vm:hover { border-color: var(--red); }
+  .compare-card.docker:hover { border-color: var(--green); }
+  .compare-card h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.6rem; }
+  .compare-card.vm h3 { color: var(--red); }
+  .compare-card.docker h3 { color: var(--green); }
+  .compare-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.75rem 0; border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+  .compare-row:last-child { border-bottom: none; }
+  .compare-row .label { color: var(--muted); }
+  .compare-row .value { font-weight: 700; font-family: var(--font-mono); font-size: 0.85rem; }
+  .compare-card.vm .value { color: var(--red); }
+  .compare-card.docker .value { color: var(--green); }
+
+  /* ── TRINDADE FLOW ── */
+  .trinity-flow { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; justify-content: center; }
+  .trinity-step {
+    flex: 1; min-width: 220px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 0; padding: 2rem; position: relative;
+    transition: all 0.3s;
+  }
+  .trinity-step:first-child { border-radius: 16px 0 0 16px; }
+  .trinity-step:last-child { border-radius: 0 16px 16px 0; }
+  .trinity-step:hover { background: var(--surface2); z-index: 2; }
+  .trinity-step.active { border-color: var(--cyan); background: rgba(0,212,255,0.05); }
+  .trinity-arrow {
+    display: flex; align-items: center; justify-content: center;
+    width: 40px; min-width: 40px; color: var(--cyan); font-size: 1.5rem;
+    background: var(--bg);
+  }
+  .step-num {
+    font-family: var(--font-mono); font-size: 0.75rem;
+    color: var(--cyan); letter-spacing: 0.1em; margin-bottom: 0.75rem;
+  }
+  .step-name { font-size: 1.2rem; font-weight: 800; margin-bottom: 0.5rem; }
+  .step-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+  .step-code {
+    margin-top: 1rem; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.75rem 1rem; font-family: var(--font-mono);
+    font-size: 0.78rem; color: var(--green); line-height: 1.6;
+    white-space: pre;
+  }
+
+  /* ── TERMINAL LAB ── */
+  #lab { background: radial-gradient(ellipse at 50% 0%, rgba(0,255,157,0.04), transparent 60%); }
+  .terminal-container {
+    background: #0d1117; border: 1px solid #30363d;
+    border-radius: 12px; overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+  }
+  .terminal-bar {
+    background: #161b22; padding: 0.75rem 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+    border-bottom: 1px solid #30363d;
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-red { background: #ff5f57; }
+  .dot-yellow { background: #febc2e; }
+  .dot-green { background: #28c840; }
+  .terminal-title {
+    margin-left: 0.75rem; font-family: var(--font-mono);
+    font-size: 0.8rem; color: #8b949e;
+  }
+  .terminal-body { padding: 1.5rem; min-height: 280px; font-family: var(--font-mono); font-size: 0.88rem; line-height: 1.8; }
+  .t-prompt { color: #79c0ff; }
+  .t-cmd { color: #e6edf3; }
+  .t-output { color: #8b949e; }
+  .t-success { color: var(--green); }
+  .t-info { color: var(--cyan); }
+  .t-warning { color: var(--yellow); }
+  .t-error { color: var(--red); }
+  .cursor { display: inline-block; width: 8px; height: 16px; background: var(--green); animation: blink 1s infinite; vertical-align: text-bottom; margin-left: 2px; }
+
+  .lab-controls {
+    display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;
+  }
+  .lab-btn {
+    padding: 0.65rem 1.4rem; border-radius: 8px; font-size: 0.85rem;
+    font-weight: 700; font-family: var(--font-mono); cursor: pointer;
+    transition: all 0.2s; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text);
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .lab-btn:hover { border-color: var(--green); color: var(--green); }
+  .lab-btn.active { background: rgba(0,255,157,0.1); border-color: var(--green); color: var(--green); }
+  .lab-btn .icon { font-size: 1rem; }
+
+  /* ── QUIZ CHALLENGE ── */
+  #challenge { background: radial-gradient(ellipse at 80% 50%, rgba(255,214,0,0.04), transparent 60%); }
+  .quiz-card {
+    background: var(--surface); border: 2px solid var(--border);
+    border-radius: 20px; padding: 2.5rem; max-width: 700px;
+  }
+  .quiz-progress {
+    display: flex; gap: 0.5rem; margin-bottom: 2rem;
+  }
+  .quiz-dot {
+    flex: 1; height: 4px; border-radius: 2px;
+    background: var(--border); transition: background 0.3s;
+  }
+  .quiz-dot.done { background: var(--green); }
+  .quiz-dot.current { background: var(--cyan); }
+
+  .quiz-q { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.5rem; line-height: 1.5; }
+  .quiz-opts { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .quiz-opt {
+    padding: 1rem 1.25rem; border-radius: 10px;
+    border: 1.5px solid var(--border); cursor: pointer;
+    font-size: 0.95rem; transition: all 0.2s; background: transparent;
+    color: var(--text); text-align: left; font-family: var(--font-display);
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .quiz-opt:hover:not(:disabled) { border-color: var(--cyan); background: rgba(0,212,255,0.05); }
+  .quiz-opt.correct { border-color: var(--green); background: rgba(0,255,157,0.1); color: var(--green); }
+  .quiz-opt.wrong { border-color: var(--red); background: rgba(255,77,109,0.1); color: var(--red); }
+  .quiz-opt:disabled { cursor: default; }
+  .opt-letter {
+    width: 28px; height: 28px; border-radius: 6px; background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; flex-shrink: 0;
+  }
+  .quiz-opt.correct .opt-letter { background: var(--green); color: #000; }
+  .quiz-opt.wrong .opt-letter { background: var(--red); color: #fff; }
+
+  .quiz-feedback {
+    padding: 1rem 1.25rem; border-radius: 10px; margin-bottom: 1rem;
+    font-size: 0.9rem; line-height: 1.6; display: none;
+  }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.ok { background: rgba(0,255,157,0.1); border: 1px solid var(--green); color: var(--green); }
+  .quiz-feedback.fail { background: rgba(255,77,109,0.1); border: 1px solid var(--red); color: var(--red); }
+
+  .quiz-score {
+    text-align: center; padding: 2rem;
+    display: none;
+  }
+  .score-number { font-size: 5rem; font-weight: 800; color: var(--cyan); line-height: 1; }
+  .score-label { color: var(--muted); margin-top: 0.5rem; }
+  .score-emoji { font-size: 3rem; margin-top: 1rem; display: block; }
+
+  /* ── STATS ── */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 1.5rem; text-align: center;
+    transition: all 0.3s;
+  }
+  .stat-card:hover { border-color: var(--cyan); transform: translateY(-4px); }
+  .stat-number { font-size: 2.5rem; font-weight: 800; color: var(--cyan); line-height: 1; }
+  .stat-unit { font-size: 1rem; color: var(--cyan); font-family: var(--font-mono); }
+  .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.4rem; text-transform: uppercase; letter-spacing: 0.1em; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border); padding: 2rem;
+    text-align: center; color: var(--muted); font-size: 0.85rem;
+  }
+  footer span { color: var(--cyan); }
+
+  /* ── REVEAL ANIMATIONS ── */
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* ── TOOLTIP ── */
+  [data-tip] { position: relative; cursor: help; }
+  [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute; bottom: calc(100% + 8px); left: 50%;
+    transform: translateX(-50%) scale(0.9); transform-origin: bottom center;
+    background: #1e2d45; border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.5rem 0.75rem; font-size: 0.78rem; color: var(--text);
+    white-space: nowrap; pointer-events: none; opacity: 0;
+    transition: all 0.2s; z-index: 50; font-family: var(--font-mono);
+  }
+  [data-tip]:hover::after { opacity: 1; transform: translateX(-50%) scale(1); }
+
+  /* ── MISC ── */
+  .glow-text { text-shadow: 0 0 30px rgba(0,212,255,0.5); }
+  .divider { height: 1px; background: var(--border); margin: 0; }
+  .text-cyan { color: var(--cyan); }
+  .text-green { color: var(--green); }
+  .text-yellow { color: var(--yellow); }
+  .mt-1 { margin-top: 0.5rem; }
+  .mt-2 { margin-top: 1rem; }
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<nav>
+  <div class="nav-logo">docker<span>.learn</span></div>
+  <div class="nav-links">
+    <a href="#conceitos">Conceitos</a>
+    <a href="#lab">Laboratório</a>
+    <a href="#challenge">Desafio</a>
+  </div>
+</nav>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section id="hero">
+  <span class="whale">🐳</span>
+  <div class="hero-badge">Guia Interativo · Docker</div>
+  <h1>Dominando o<br><span class="accent glow-text">Docker</span></h1>
+  <p class="hero-sub">Aprenda contêinerização de forma divertida. Explore conceitos, pratique no terminal e prove seu conhecimento.</p>
+  <div class="btn-group">
+    <a href="#conceitos" class="btn btn-primary">Começar Agora 🚀</a>
+    <a href="#lab" class="btn btn-outline">Ver Laboratório</a>
+  </div>
+  <div class="scroll-hint">scroll</div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════ CONCEITOS ═══════════════ -->
+<section id="conceitos">
+  <div class="section-wrapper">
+    <p class="section-tag reveal">O que é</p>
+    <h2 class="reveal">Contêinerização,<br>na prática.</h2>
+    <p class="section-desc reveal">Uma tecnologia que <strong>empacota</strong> sua aplicação com tudo o que ela precisa para rodar — em um ambiente completamente isolado.</p>
+
+    <div class="stats-row">
+      <div class="stat-card reveal reveal-delay-1" data-tip="Menor uso de memória vs VMs">
+        <div class="stat-number">95<span class="stat-unit">%</span></div>
+        <div class="stat-label">Menos memória que VMs</div>
+      </div>
+      <div class="stat-card reveal reveal-delay-2" data-tip="Inicialização em milissegundos">
+        <div class="stat-number">&lt;1<span class="stat-unit">s</span></div>
+        <div class="stat-label">Tempo de inicialização</div>
+      </div>
+      <div class="stat-card reveal reveal-delay-3" data-tip="Escale containers infinitamente">
+        <div class="stat-number">∞<span class="stat-unit"></span></div>
+        <div class="stat-label">Containers simultâneos</div>
+      </div>
+      <div class="stat-card reveal reveal-delay-4" data-tip="Funciona em qualquer lugar">
+        <div class="stat-number">1<span class="stat-unit">x</span></div>
+        <div class="stat-label">Build, roda em qualquer lugar</div>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <div class="card reveal reveal-delay-1">
+        <span class="card-icon">✈️</span>
+        <div class="card-title">Portabilidade</div>
+        <div class="card-desc">Funciona igual no seu PC, no servidor e na nuvem. Acabou o "na minha máquina funciona".</div>
+      </div>
+      <div class="card reveal reveal-delay-2">
+        <span class="card-icon">🔒</span>
+        <div class="card-title">Isolamento</div>
+        <div class="card-desc">Cada container vive em seu próprio mundo. Aplicações separadas, sem conflitos.</div>
+      </div>
+      <div class="card reveal reveal-delay-3">
+        <span class="card-icon">⚡</span>
+        <div class="card-title">Rapidez</div>
+        <div class="card-desc">Inicie instâncias em frações de segundo. Containers são leves como plumas.</div>
+      </div>
+      <div class="card reveal reveal-delay-4">
+        <span class="card-icon">📈</span>
+        <div class="card-title">Escalabilidade</div>
+        <div class="card-desc">Suba milhares de containers conforme a demanda cresce. Kubernetes agradece.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════ VM vs DOCKER ═══════════════ -->
+<section id="comparacao">
+  <div class="section-wrapper">
+    <p class="section-tag reveal">Comparação</p>
+    <h2 class="reveal">VM vs. <span class="text-cyan">Container</span></h2>
+    <p class="section-desc reveal">Máquinas virtuais emulam hardware inteiro. Containers compartilham o kernel do SO — muito mais eficiente.</p>
+
+    <div class="compare-grid reveal">
+      <div class="compare-card vm">
+        <h3>💻 Máquina Virtual</h3>
+        <div class="compare-row"><span class="label">Abstração</span><span class="value">Hardware físico</span></div>
+        <div class="compare-row"><span class="label">Tamanho</span><span class="value">Gigabytes (GB)</span></div>
+        <div class="compare-row"><span class="label">Inicialização</span><span class="value">Minutos</span></div>
+        <div class="compare-row"><span class="label">Eficiência</span><span class="value">Alta sobrecarga</span></div>
+        <div class="compare-row"><span class="label">SO próprio</span><span class="value">Sim (completo)</span></div>
+      </div>
+      <div class="compare-card docker">
+        <h3>🐳 Container Docker</h3>
+        <div class="compare-row"><span class="label">Abstração</span><span class="value">Kernel do SO</span></div>
+        <div class="compare-row"><span class="label">Tamanho</span><span class="value">Megabytes (MB)</span></div>
+        <div class="compare-row"><span class="label">Inicialização</span><span class="value">Milissegundos</span></div>
+        <div class="compare-row"><span class="label">Eficiência</span><span class="value">Baixa sobrecarga</span></div>
+        <div class="compare-row"><span class="label">SO próprio</span><span class="value">Compartilhado</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════ A TRINDADE ═══════════════ -->
+<section id="trindade">
+  <div class="section-wrapper">
+    <p class="section-tag reveal">Conceito core</p>
+    <h2 class="reveal">A <span class="text-cyan">Trindade</span> do Docker</h2>
+    <p class="section-desc reveal">Todo workflow Docker segue este fluxo de 3 etapas. Clique em cada etapa para explorar.</p>
+
+    <div class="trinity-flow reveal">
+      <div class="trinity-step" id="step1" onclick="selectStep(1)">
+        <div class="step-num">PASSO 01</div>
+        <div class="step-name">📄 Dockerfile</div>
+        <div class="step-desc">A "receita de bolo". Um arquivo de texto com todas as instruções para montar sua imagem.</div>
+        <div class="step-code">FROM node:18
+WORKDIR /app
+COPY . .
+RUN npm install
+CMD ["npm","start"]</div>
+      </div>
+      <div class="trinity-arrow">→</div>
+      <div class="trinity-step" id="step2" onclick="selectStep(2)">
+        <div class="step-num">PASSO 02</div>
+        <div class="step-name">📦 Imagem</div>
+        <div class="step-desc">O "bolo congelado". Um pacote estático, pronto para ser distribuído e executado em qualquer lugar.</div>
+        <div class="step-code">$ docker build -t meu-app .
+
+Step 1/5 : FROM node:18 ✓
+Step 2/5 : WORKDIR /app ✓
+...
+Successfully built 4a8f9b2</div>
+      </div>
+      <div class="trinity-arrow">→</div>
+      <div class="trinity-step" id="step3" onclick="selectStep(3)">
+        <div class="step-num">PASSO 03</div>
+        <div class="step-name">🚀 Container</div>
+        <div class="step-desc">O "bolo servido". A instância em execução da sua imagem. Você pode ter vários ao mesmo tempo!</div>
+        <div class="step-code">$ docker run -p 3000:3000 meu-app
+
+> Server running on port 3000 ✓
+Container ID: 7f3c91a...</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════ LABORATÓRIO ═══════════════ -->
+<section id="lab">
+  <div class="section-wrapper">
+    <p class="section-tag reveal">Prática</p>
+    <h2 class="reveal">Laboratório <span class="text-green">Terminal</span></h2>
+    <p class="section-desc reveal">Simule comandos Docker reais. Clique nos botões abaixo para ver o que acontece em cada etapa do fluxo.</p>
+
+    <div class="terminal-container reveal">
+      <div class="terminal-bar">
+        <div class="dot dot-red"></div>
+        <div class="dot dot-yellow"></div>
+        <div class="dot dot-green"></div>
+        <span class="terminal-title">docker-lab — bash</span>
+      </div>
+      <div class="terminal-body" id="termBody">
+        <div><span class="t-prompt">user@docker:~$</span> <span class="cursor"></span></div>
+      </div>
+    </div>
+
+    <div class="lab-controls reveal">
+      <button class="lab-btn" onclick="runCmd('pull')" id="btn-pull">
+        <span class="icon">⬇️</span> docker pull nginx
+      </button>
+      <button class="lab-btn" onclick="runCmd('run')" id="btn-run">
+        <span class="icon">▶️</span> docker run nginx
+      </button>
+      <button class="lab-btn" onclick="runCmd('ps')" id="btn-ps">
+        <span class="icon">📋</span> docker ps
+      </button>
+      <button class="lab-btn" onclick="runCmd('build')" id="btn-build">
+        <span class="icon">🏗️</span> docker build
+      </button>
+      <button class="lab-btn" onclick="runCmd('stop')" id="btn-stop">
+        <span class="icon">⏹️</span> docker stop
+      </button>
+      <button class="lab-btn" onclick="runCmd('clear')" style="margin-left:auto; color:var(--muted);">
+        <span class="icon">🗑️</span> Limpar
+      </button>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════ DESAFIO ═══════════════ -->
+<section id="challenge">
+  <div class="section-wrapper">
+    <p class="section-tag reveal">Hora da verdade</p>
+    <h2 class="reveal">O Desafio do <span class="text-yellow">Arquiteto</span> 🏆</h2>
+    <p class="section-desc reveal">Prove que você dominou o Docker! Responda as 5 perguntas abaixo para conquistar seu certificado.</p>
+
+    <div class="quiz-card reveal" id="quizCard">
+
+      <div class="quiz-progress" id="quizProgress"></div>
+
+      <div id="quizContent">
+        <div class="quiz-q" id="quizQ"></div>
+        <div class="quiz-opts" id="quizOpts"></div>
+        <div class="quiz-feedback" id="quizFeedback"></div>
+        <button class="btn btn-primary" id="quizNext" onclick="nextQ()" style="display:none">Próxima →</button>
+      </div>
+
+      <div class="quiz-score" id="quizScore">
+        <div class="score-number" id="scoreNum"></div>
+        <div class="score-label">de 5 questões corretas</div>
+        <span class="score-emoji" id="scoreEmoji"></span>
+        <p style="color:var(--muted);margin-top:1rem;font-size:0.9rem" id="scoreMsg"></p>
+        <button class="btn btn-primary mt-2" onclick="restartQuiz()">Tentar Novamente 🔄</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Feito com 🐳 para aprender Docker de verdade · <span>docker.learn</span></p>
+</footer>
+
+<script>
+/* ─────────────────────────────────────────
+   PARTICLES
+───────────────────────────────────────── */
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let W, H, pts = [];
+function resize(){ W=canvas.width=innerWidth; H=canvas.height=innerHeight; }
+function initPts(){
+  pts=[];
+  for(let i=0;i<60;i++) pts.push({
+    x:Math.random()*W, y:Math.random()*H,
+    vx:(Math.random()-0.5)*0.3, vy:(Math.random()-0.5)*0.3,
+    r:Math.random()*1.5+0.5, o:Math.random()*0.4+0.1
+  });
+}
+function drawPts(){
+  ctx.clearRect(0,0,W,H);
+  pts.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy;
+    if(p.x<0||p.x>W) p.vx*=-1;
+    if(p.y<0||p.y>H) p.vy*=-1;
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(0,212,255,${p.o})`; ctx.fill();
+  });
+  pts.forEach((a,i)=>pts.slice(i+1).forEach(b=>{
+    const d=Math.hypot(a.x-b.x,a.y-b.y);
+    if(d<120){ ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+      ctx.strokeStyle=`rgba(0,212,255,${0.08*(1-d/120)})`; ctx.lineWidth=0.5; ctx.stroke(); }
+  }));
+  requestAnimationFrame(drawPts);
+}
+resize(); initPts(); drawPts();
+window.addEventListener('resize',()=>{ resize(); initPts(); });
+
+/* ─────────────────────────────────────────
+   PROGRESS BAR
+───────────────────────────────────────── */
+window.addEventListener('scroll',()=>{
+  const pct = scrollY/(document.body.scrollHeight-innerHeight)*100;
+  document.getElementById('progressBar').style.width=pct+'%';
+});
+
+/* ─────────────────────────────────────────
+   REVEAL ON SCROLL
+───────────────────────────────────────── */
+const revealObs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+},{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(el=>revealObs.observe(el));
+
+/* ─────────────────────────────────────────
+   TRINITY STEPS
+───────────────────────────────────────── */
+function selectStep(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('step'+i).classList.toggle('active',i===n);
+  });
+}
+
+/* ─────────────────────────────────────────
+   TERMINAL LAB
+───────────────────────────────────────── */
+let termRunning = false;
+
+const COMMANDS = {
+  pull: {
+    cmd: 'docker pull nginx',
+    lines: [
+      {t:'info', text:'Using default tag: latest'},
+      {t:'output', text:'latest: Pulling from library/nginx'},
+      {t:'output', text:'a1d0c7532777: Pull complete'},
+      {t:'output', text:'e9cc4f423744: Pull complete'},
+      {t:'output', text:'b5f9abb23e6c: Pull complete'},
+      {t:'success', text:'Digest: sha256:32da30332506740a2f7c34d5dc70467b7f14ec67'},
+      {t:'success', text:'Status: Downloaded newer image for nginx:latest 🎉'},
+      {t:'info', text:'docker.io/library/nginx:latest'},
+    ]
+  },
+  run: {
+    cmd: 'docker run -d -p 8080:80 nginx',
+    lines: [
+      {t:'info', text:'Unable to find image "nginx:latest" locally? No — já temos!'},
+      {t:'output', text:'Creating container from nginx:latest...'},
+      {t:'success', text:'7f3c91a4b2e1d9f8c3a5b7e2f4d6a8c1b3e5f7 ✓'},
+      {t:'success', text:'Container started! 🚀'},
+      {t:'info', text:'Nginx disponível em → http://localhost:8080'},
+    ]
+  },
+  ps: {
+    cmd: 'docker ps',
+    lines: [
+      {t:'output', text:'CONTAINER ID   IMAGE     COMMAND                  STATUS'},
+      {t:'output', text:'─────────────────────────────────────────────────────────'},
+      {t:'success', text:'7f3c91a4b2e1   nginx     "/docker-entrypoint.…"   Up 2 minutes'},
+      {t:'info', text:''},
+      {t:'info', text:'1 container(s) em execução 📦'},
+    ]
+  },
+  build: {
+    cmd: 'docker build -t meu-app .',
+    lines: [
+      {t:'output', text:'[+] Building 12.3s (8/8) DONE'},
+      {t:'output', text:' => [internal] load build definition from Dockerfile'},
+      {t:'output', text:' => [1/5] FROM docker.io/library/node:18'},
+      {t:'output', text:' => [2/5] WORKDIR /app'},
+      {t:'output', text:' => [3/5] COPY . .'},
+      {t:'output', text:' => [4/5] RUN npm install'},
+      {t:'output', text:' => [5/5] CMD ["npm", "start"]'},
+      {t:'success', text:' => exporting to image ✓'},
+      {t:'success', text:'Successfully built 4a8f9b2c1d3e 🏗️'},
+      {t:'success', text:'Successfully tagged meu-app:latest'},
+    ]
+  },
+  stop: {
+    cmd: 'docker stop 7f3c91a4b2e1',
+    lines: [
+      {t:'warning', text:'Enviando sinal SIGTERM para o container...'},
+      {t:'output', text:'7f3c91a4b2e1'},
+      {t:'success', text:'Container stopped ⏹️'},
+      {t:'info', text:'Use "docker start 7f3c91a4" para reiniciar.'},
+    ]
+  }
+};
+
+async function runCmd(key){
+  if(termRunning && key !== 'clear') return;
+  const body = document.getElementById('termBody');
+
+  if(key === 'clear'){
+    body.innerHTML = '<div><span class="t-prompt">user@docker:~$</span> <span class="cursor"></span></div>';
+    return;
+  }
+
+  const def = COMMANDS[key];
+  termRunning = true;
+
+  // Remove cursor line
+  const last = body.lastElementChild;
+  if(last && last.querySelector('.cursor')) body.removeChild(last);
+
+  // Print command
+  const cmdLine = document.createElement('div');
+  cmdLine.innerHTML = `<span class="t-prompt">user@docker:~$</span> <span class="t-cmd">${def.cmd}</span>`;
+  body.appendChild(cmdLine);
+  body.scrollTop = body.scrollHeight;
+
+  // Print output lines with delay
+  for(const l of def.lines){
+    await sleep(200 + Math.random()*200);
+    const line = document.createElement('div');
+    line.className = 't-' + l.t;
+    line.textContent = l.text;
+    line.style.opacity = '0'; line.style.transform = 'translateY(4px)';
+    line.style.transition = 'all 0.15s';
+    body.appendChild(line);
+    body.scrollTop = body.scrollHeight;
+    await sleep(20);
+    line.style.opacity = '1'; line.style.transform = 'translateY(0)';
+  }
+
+  // Restore prompt
+  await sleep(300);
+  const newPrompt = document.createElement('div');
+  newPrompt.innerHTML = '<span class="t-prompt">user@docker:~$</span> <span class="cursor"></span>';
+  body.appendChild(newPrompt);
+  body.scrollTop = body.scrollHeight;
+  termRunning = false;
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+/* ─────────────────────────────────────────
+   QUIZ
+───────────────────────────────────────── */
+const QUESTIONS = [
+  {
+    q: '🐳 Qual arquivo define as instruções para criar uma imagem Docker personalizada?',
+    opts: ['docker-compose.yml', 'Dockerfile', 'image-config.json', 'container.yaml'],
+    ans: 1,
+    ok: '✅ Correto! O Dockerfile é a "receita" que contém todas as instruções: FROM, WORKDIR, COPY, RUN, CMD...',
+    fail: '❌ Não exatamente. O arquivo correto é o Dockerfile — um arquivo de texto com todas as instruções de montagem.'
+  },
+  {
+    q: '⚡ Qual é a principal vantagem dos containers em relação às Máquinas Virtuais quanto ao tempo de inicialização?',
+    opts: ['Containers demoram minutos, VMs segundos', 'Ambos iniciam igualmente', 'Containers iniciam em segundos/milissegundos', 'Containers precisam reiniciar o SO'],
+    ans: 2,
+    ok: '✅ Isso aí! Containers compartilham o kernel do SO e iniciam em milissegundos. VMs precisam boot completo.',
+    fail: '❌ Containers iniciam muito mais rápido — em segundos ou milissegundos, pois não carregam um SO completo.'
+  },
+  {
+    q: '📦 No fluxo do Docker, o que é uma "Imagem"?',
+    opts: ['A instância em execução da aplicação', 'Um arquivo de configuração de rede', 'Um pacote estático pronto para ser distribuído', 'O servidor onde o container roda'],
+    ans: 2,
+    ok: '✅ Perfeito! A Imagem é o "bolo congelado" — um pacote imutável gerado pelo Dockerfile.',
+    fail: '❌ A Imagem é o pacote estático gerado pelo Dockerfile. O Container é a instância em execução.'
+  },
+  {
+    q: '🔧 Qual comando você usa para iniciar um container a partir de uma imagem chamada "meu-app"?',
+    opts: ['docker start meu-app', 'docker build meu-app', 'docker run meu-app', 'docker create meu-app'],
+    ans: 2,
+    ok: '✅ Exato! `docker run` cria e inicia um container a partir de uma imagem.',
+    fail: '❌ O comando correto é `docker run meu-app`. Ele cria e inicia o container em uma única etapa.'
+  },
+  {
+    q: '🌐 Qual das opções abaixo NÃO é uma vantagem do Docker?',
+    opts: ['Portabilidade entre ambientes', 'Isolamento de aplicações', 'Necessitar de um SO completo por container', 'Escalabilidade rápida'],
+    ans: 2,
+    ok: '✅ Correto! Containers compartilham o kernel — não precisam de um SO completo. Isso é justamente uma vantagem!',
+    fail: '❌ A resposta correta é "Necessitar de um SO completo". Isso é desvantagem das VMs, não dos containers!'
+  }
+];
+
+let qIndex = 0, score = 0, answered = false;
+
+function renderQuiz(){
+  const q = QUESTIONS[qIndex];
+  // Progress dots
+  const prog = document.getElementById('quizProgress');
+  prog.innerHTML = QUESTIONS.map((_,i)=>
+    `<div class="quiz-dot ${i<qIndex?'done':i===qIndex?'current':''}"></div>`
+  ).join('');
+
+  document.getElementById('quizQ').textContent = q.q;
+
+  const opts = document.getElementById('quizOpts');
+  opts.innerHTML = q.opts.map((o,i)=>
+    `<button class="quiz-opt" onclick="answerQ(${i})" data-i="${i}">
+      <span class="opt-letter">${'ABCD'[i]}</span> ${o}
+    </button>`
+  ).join('');
+
+  document.getElementById('quizFeedback').className = 'quiz-feedback';
+  document.getElementById('quizFeedback').textContent = '';
+  document.getElementById('quizNext').style.display = 'none';
+  answered = false;
+}
+
+function answerQ(i){
+  if(answered) return;
+  answered = true;
+  const q = QUESTIONS[qIndex];
+  const opts = document.querySelectorAll('.quiz-opt');
+  opts.forEach(o=>o.disabled=true);
+  opts[i].classList.add(i===q.ans?'correct':'wrong');
+  if(i!==q.ans) opts[q.ans].classList.add('correct');
+  if(i===q.ans) score++;
+
+  const fb = document.getElementById('quizFeedback');
+  fb.textContent = i===q.ans ? q.ok : q.fail;
+  fb.className = 'quiz-feedback show '+(i===q.ans?'ok':'fail');
+
+  const btn = document.getElementById('quizNext');
+  btn.textContent = qIndex < QUESTIONS.length-1 ? 'Próxima →' : 'Ver Resultado 🏆';
+  btn.style.display = 'inline-block';
+}
+
+function nextQ(){
+  qIndex++;
+  if(qIndex >= QUESTIONS.length){
+    showScore();
+  } else {
+    renderQuiz();
+  }
+}
+
+function showScore(){
+  document.getElementById('quizContent').style.display='none';
+  const s = document.getElementById('quizScore');
+  s.style.display='block';
+  document.getElementById('scoreNum').textContent=score;
+  const emojis = ['😅','🤔','👍','🎯','🏆'];
+  const msgs = [
+    'Não desanime! Revise os conceitos e tente de novo.',
+    'Quase lá! Releia a seção sobre a Trindade do Docker.',
+    'Bom trabalho! Você está no caminho certo.',
+    'Muito bem! Você domina quase tudo sobre Docker.',
+    'PERFEITO! Você é um Arquiteto Docker! 🐳'
+  ];
+  document.getElementById('scoreEmoji').textContent=emojis[score];
+  document.getElementById('scoreMsg').textContent=msgs[score];
+}
+
+function restartQuiz(){
+  qIndex=0; score=0; answered=false;
+  document.getElementById('quizContent').style.display='block';
+  document.getElementById('quizScore').style.display='none';
+  renderQuiz();
+}
+
+// Init
+renderQuiz();
+</script>
+</body>
+</html>
