@@ -1,0 +1,92 @@
+Perfeito 😄
+Então fica ainda melhor para competição em sala.
+
+Você pode usar 3 grupos assim:
+
+```javascript
+const equipes = [
+  { nome: "Team Containers", cor: "#00d4ff" },
+  { nome: "Team Images", cor: "#00ff9d" },
+  { nome: "Team Dockerfiles", cor: "#ffd600" }
+];
+```
+
+Ou algo mais divertido:
+
+```javascript
+const equipes = [
+  { nome: "Docker Masters", cor: "#00d4ff" },
+  { nome: "Container Squad", cor: "#00ff9d" },
+  { nome: "DevOps Ninjas", cor: "#ff4d6d" }
+];
+```
+
+Depois troque isto:
+
+```javascript
+let pontuacoes = {
+  "Grifinória": 0,
+  "Sonserina": 0,
+  "Corvinal": 0,
+  "Lufa-Lufa": 0
+};
+```
+
+por:
+
+```javascript
+let pontuacoes = {
+  "Docker Masters": 0,
+  "Container Squad": 0,
+  "DevOps Ninjas": 0
+};
+```
+
+E remova a Lufa-Lufa/4ª casa do HTML e JS.
+
+No sorteio dos grupos:
+
+```javascript
+const grupos = [
+  "Docker Masters",
+  "Container Squad",
+  "DevOps Ninjas"
+];
+```
+
+Você também pode fazer:
+
+* cada pergunta valer 10 pontos
+* pergunta bônus valer 30
+* cronômetro de 15 segundos
+* efeito sonoro quando acertar
+* ranking animado
+
+Ideia MUITO boa para apresentação:
+
+# 🏆 Docker Battle
+
+### Rodadas:
+
+1. Conceitos Docker
+2. Comandos Docker
+3. Dockerfile
+4. Containers vs VM
+5. Desafio Final
+
+### Perguntas exemplo:
+
+* O que faz `docker ps`?
+* Qual comando cria imagem?
+* O que é container?
+* Diferença entre VM e Docker?
+* O que é Docker Hub?
+* O que faz `docker run`?
+
+E no final:
+
+```html
+<h1>🏆 CAMPEÃO DO DOCKER BATTLE 🐳</h1>
+```
+
+Vai ficar MUITO interativo para a turma.
